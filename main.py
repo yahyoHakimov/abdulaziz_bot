@@ -1,11 +1,10 @@
 import asyncio
 from telegram.ext import ApplicationBuilder
-from config import BOT_TOKEN, MORNING_HOUR, EVENING_HOUR
+from config import BOT_TOKEN
 from database.schema import init_db
 from handlers.registration import build_registration_handler
 from handlers.confirmation import build_confirmation_handler
 from handlers.admin import build_admin_handlers
-from scheduler.jobs import register_jobs
 
 
 def main() -> None:
@@ -17,8 +16,6 @@ def main() -> None:
     app.add_handler(build_confirmation_handler())
     for handler in build_admin_handlers():
         app.add_handler(handler)
-
-    register_jobs(app, MORNING_HOUR, EVENING_HOUR)
 
     print("Bot is running...")
     loop = asyncio.new_event_loop()
