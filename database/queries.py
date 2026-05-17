@@ -89,3 +89,14 @@ def set_needs_reminder(chat_id: int, value: bool) -> None:
             "UPDATE clients SET needs_reminder = ? WHERE chat_id = ?",
             (int(value), chat_id),
         )
+
+
+def get_all_clients() -> list[Client]:
+    with get_connection() as conn:
+        rows = conn.execute("SELECT * FROM clients ORDER BY name").fetchall()
+    return [_row_to_client(r) for r in rows]
+
+
+def delete_client(chat_id: int) -> None:
+    with get_connection() as conn:
+        conn.execute("DELETE FROM clients WHERE chat_id = ?", (chat_id,))

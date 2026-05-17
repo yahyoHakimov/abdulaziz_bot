@@ -68,6 +68,10 @@ async def receive_interval(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         f"You're all set, {name}! We'll remind you every {days} days to visit the barber.",
         reply_markup=ReplyKeyboardRemove(),
     )
+
+    from handlers.admin import notify_admin
+    await notify_admin(context, name, phone, days)
+
     return ConversationHandler.END
 
 

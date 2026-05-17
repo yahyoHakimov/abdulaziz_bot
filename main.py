@@ -4,6 +4,7 @@ from config import BOT_TOKEN, MORNING_HOUR, EVENING_HOUR
 from database.schema import init_db
 from handlers.registration import build_registration_handler
 from handlers.confirmation import build_confirmation_handler
+from handlers.admin import build_admin_handlers
 from scheduler.jobs import register_jobs
 
 
@@ -14,6 +15,8 @@ def main() -> None:
 
     app.add_handler(build_registration_handler())
     app.add_handler(build_confirmation_handler())
+    for handler in build_admin_handlers():
+        app.add_handler(handler)
 
     register_jobs(app, MORNING_HOUR, EVENING_HOUR)
 
