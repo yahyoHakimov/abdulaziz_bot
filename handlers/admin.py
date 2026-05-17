@@ -17,7 +17,7 @@ def _client_status(client) -> str:
     elif days_left <= 0:
         status = "🔔 due today"
     else:
-        status = f"🕐 {days_left}d left"
+        status = f"🕐 {days_left} kun qoldi"
     return status
 
 
