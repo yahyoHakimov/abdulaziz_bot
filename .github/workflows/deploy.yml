@@ -17,7 +17,7 @@ jobs:
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /opt/barber
+            cd /opt/abdulaziz_bot
             git pull origin main
             venv/bin/pip install -r requirements.txt -q
             systemctl restart barber-bot
