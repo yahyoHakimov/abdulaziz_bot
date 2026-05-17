@@ -13,9 +13,9 @@ def _client_status(client) -> str:
     days_since = (date.today() - client.last_visit).days
     days_left = client.interval_days - days_since
     if client.needs_reminder:
-        status = "⏰ waiting confirmation"
+        status = "⏰ Tasdiqlash kutilmoqda"
     elif days_left <= 0:
-        status = "🔔 due today"
+        status = "🔔 Bugun eslatma"
     else:
         status = f"🕐 {days_left} kun qoldi"
     return status
