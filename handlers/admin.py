@@ -27,13 +27,13 @@ async def cmd_clients(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
     clients = get_all_clients()
     if not clients:
-        await update.message.reply_text("No clients registered yet.")
+        await update.message.reply_text("Hozircha mijozlar yo'q.")
         return
 
-    lines = ["*Client List:*\n"]
+    lines = ["*Mijozlar ro'yxati:*\n"]
     for c in clients:
         status = _client_status(c)
-        lines.append(f"👤 *{c.name}* | {c.phone} | every {c.interval_days}d | {status}")
+        lines.append(f"👤 *{c.name}* | {c.phone} | har {c.interval_days} kun | {status}")
 
     await update.message.reply_text("\n".join(lines), parse_mode="Markdown")
 
@@ -44,7 +44,7 @@ async def cmd_reset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     clients = get_all_clients()
     if not clients:
-        await update.message.reply_text("No clients registered yet.")
+        await update.message.reply_text("Hozircha mijozlar yo'q.")
         return
 
     keyboard = [
@@ -52,7 +52,7 @@ async def cmd_reset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         for c in clients
     ]
     await update.message.reply_text(
-        "Choose a client to reset their timer:",
+        "Hisoblagichni tiklash uchun mijozni tanlang:",
         reply_markup=InlineKeyboardMarkup(keyboard),
     )
 
@@ -63,7 +63,7 @@ async def cmd_remove(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 
     clients = get_all_clients()
     if not clients:
-        await update.message.reply_text("No clients registered yet.")
+        await update.message.reply_text("Hozircha mijozlar yo'q.")
         return
 
     keyboard = [
@@ -71,7 +71,7 @@ async def cmd_remove(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         for c in clients
     ]
     await update.message.reply_text(
-        "Choose a client to remove:",
+        "O'chirish uchun mijozni tanlang:",
         reply_markup=InlineKeyboardMarkup(keyboard),
     )
 
@@ -90,7 +90,7 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
         clients = get_all_clients()
         client = next((c for c in clients if c.chat_id == chat_id), None)
         name = client.name if client else str(chat_id)
-        await query.edit_message_text(f"✅ Timer reset for {name}. Cycle starts from today.")
+        await query.edit_message_text(f"✅ {name} uchun hisoblagich tiklandi. Siklı bugundan boshlanadi.")
 
     elif data.startswith("admin_remove_"):
         chat_id = int(data.split("_")[2])
@@ -98,13 +98,13 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
         client = next((c for c in clients if c.chat_id == chat_id), None)
         name = client.name if client else str(chat_id)
         delete_client(chat_id)
-        await query.edit_message_text(f"🗑 {name} has been removed.")
+        await query.edit_message_text(f"🗑 {name} o'chirildi.")
 
 
 async def notify_admin(context, name: str, phone: str, interval: int) -> None:
     await context.bot.send_message(
         chat_id=ADMIN_CHAT_ID,
-        text=f"🆕 New client registered:\n👤 *{name}*\n📞 {phone}\n🕐 Every {interval} days",
+        text=f"🆕 Yangi mijoz ro'yxatdan o'tdi:\n👤 *{name}*\n📞 {phone}\n🕐 Har {interval} kun",
         parse_mode="Markdown",
     )
 

@@ -8,7 +8,7 @@ async def send_morning_reminders(app: Application) -> None:
     for client in clients:
         await app.bot.send_message(
             chat_id=client.chat_id,
-            text=f"Good morning, {client.name}! It's time to visit the barber.",
+            text=f"Xayrli tong, {client.name}! Sartaroshga borish vaqti keldi. ✂️",
         )
         from database.queries import set_needs_reminder
         set_needs_reminder(client.chat_id, True)
@@ -19,7 +19,7 @@ async def send_evening_confirmations(app: Application) -> None:
     for client in clients:
         await app.bot.send_message(
             chat_id=client.chat_id,
-            text="Did you visit the barber today?",
+            text="Bugun sartaroshga bordingizmi?",
             reply_markup=build_confirmation_keyboard(),
         )
 

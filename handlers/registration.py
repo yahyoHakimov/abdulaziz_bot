@@ -5,15 +5,26 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
-from config import INTERVALS
+from config import INTERVALS, ADMIN_CHAT_ID, ADMIN_NAME
 from database.queries import create_client
 
 NAME, PHONE, INTERVAL = range(3)
 
 
 async def ask_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    if update.effective_user.id == ADMIN_CHAT_ID:
+        await update.message.reply_text(
+            f"Xush kelibsiz, {ADMIN_NAME}! 👋\n\n"
+            "Admin buyruqlari:\n"
+            "/clients — Mijozlar ro'yxati\n"
+            "/reset — Mijoz hisoblagichini tiklash\n"
+            "/remove — Mijozni o'chirish",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        return ConversationHandler.END
+
     await update.message.reply_text(
-        "Welcome! What is your name?",
+        "Xush kelibsiz! Ismingizni kiriting:",
         reply_markup=ReplyKeyboardRemove(),
     )
     return NAME
@@ -21,9 +32,9 @@ async def ask_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 async def receive_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     context.user_data["name"] = update.message.text.strip()
-    keyboard = [[KeyboardButton("Share phone number", request_contact=True)]]
+    keyboard = [[KeyboardButton("📱 Telefon raqamini ulashish", request_contact=True)]]
     await update.message.reply_text(
-        "Please share your phone number.",
+        "Telefon raqamingizni ulashing:",
         reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True),
     )
     return PHONE
@@ -32,13 +43,13 @@ async def receive_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
 async def receive_phone(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     contact = update.message.contact
     if not contact:
-        await update.message.reply_text("Please use the button to share your phone number.")
+        await update.message.reply_text("Iltimos, tugmani bosib telefon raqamingizni ulashing.")
         return PHONE
 
     context.user_data["phone"] = contact.phone_number
-    keyboard = [[KeyboardButton(f"{d} days")] for d in INTERVALS]
+    keyboard = [[KeyboardButton(f"{d} kun")] for d in INTERVALS]
     await update.message.reply_text(
-        "How often should we remind you to visit the barber?",
+        "Qancha kundan keyin sartaroshga borishingizni eslataylik?",
         reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True),
     )
     return INTERVAL
@@ -51,9 +62,9 @@ async def receive_interval(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         if days not in INTERVALS:
             raise ValueError
     except (ValueError, IndexError):
-        keyboard = [[KeyboardButton(f"{d} days")] for d in INTERVALS]
+        keyboard = [[KeyboardButton(f"{d} kun")] for d in INTERVALS]
         await update.message.reply_text(
-            "Please choose one of the options.",
+            "Iltimos, variantlardan birini tanlang.",
             reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True),
         )
         return INTERVAL
@@ -65,7 +76,7 @@ async def receive_interval(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     create_client(chat_id, name, phone, days)
 
     await update.message.reply_text(
-        f"You're all set, {name}! We'll remind you every {days} days to visit the barber.",
+        f"Hammasi tayyor, {name}! Har {days} kunda sartaroshga borishingizni eslatib turamiz. ✂️",
         reply_markup=ReplyKeyboardRemove(),
     )
 
@@ -76,7 +87,7 @@ async def receive_interval(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    await update.message.reply_text("Registration cancelled.", reply_markup=ReplyKeyboardRemove())
+    await update.message.reply_text("Bekor qilindi.", reply_markup=ReplyKeyboardRemove())
     return ConversationHandler.END
 
 
