@@ -1,6 +1,7 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, CallbackQueryHandler
 from services.reminder import confirm_visit, skip_visit
+from database.queries import get_client_by_chat_id
 
 CONFIRM_YES = "confirm_yes"
 CONFIRM_NO = "confirm_no"
@@ -22,7 +23,9 @@ async def handle_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     if query.data == CONFIRM_YES:
         confirm_visit(chat_id)
-        await query.edit_message_text("Ajoyib! Ko'rishguncha. Eslatma siklingiz yangilandi. ✂️")
+        client = get_client_by_chat_id(chat_id)
+        days = client.interval_days if client else ""
+        await query.edit_message_text(f"Ajoyib! Ko'rishguncha. {days} kundan keyin yana eslatamiz. ✂️")
     elif query.data == CONFIRM_NO:
         skip_visit(chat_id)
         await query.edit_message_text("Xavotir olmang! Ertaga ertalab yana eslatamiz. 🕐")
