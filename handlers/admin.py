@@ -31,9 +31,9 @@ async def cmd_clients(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         return
 
     lines = ["*Mijozlar ro'yxati:*\n"]
-    for c in clients:
+    for i, c in enumerate(clients, start=1):
         status = _client_status(c)
-        lines.append(f"👤 *{c.name}* | {c.phone} | har {c.interval_days} kun | {status}")
+        lines.append(f"{i}. 👤 *{c.name}* | {c.phone} | har {c.interval_days} kun | {status}")
 
     await update.message.reply_text("\n".join(lines), parse_mode="Markdown")
 
