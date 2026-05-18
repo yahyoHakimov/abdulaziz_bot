@@ -1,12 +1,12 @@
 from datetime import date
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, CommandHandler, CallbackQueryHandler
-from config import ADMIN_CHAT_ID
+from config import ADMIN_IDS
 from database.queries import get_all_clients, delete_client, mark_visited
 
 
 def is_admin(update: Update) -> bool:
-    return update.effective_user.id == ADMIN_CHAT_ID
+    return update.effective_user.id in ADMIN_IDS
 
 
 def _client_status(client) -> str:
@@ -102,11 +102,12 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 
 async def notify_admin(context, name: str, phone: str, interval: int) -> None:
-    await context.bot.send_message(
-        chat_id=ADMIN_CHAT_ID,
-        text=f"🆕 Yangi mijoz ro'yxatdan o'tdi:\n👤 *{name}*\n📞 {phone}\n🕐 Har {interval} kun",
-        parse_mode="Markdown",
-    )
+    for admin_id in ADMIN_IDS:
+        await context.bot.send_message(
+            chat_id=admin_id,
+            text=f"🆕 Yangi mijoz ro'yxatdan o'tdi:\n👤 *{name}*\n📞 {phone}\n🕐 Har {interval} kun",
+            parse_mode="Markdown",
+        )
 
 
 def build_admin_handlers() -> list:

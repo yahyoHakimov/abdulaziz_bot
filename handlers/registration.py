@@ -5,14 +5,14 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
-from config import INTERVALS, ADMIN_CHAT_ID, ADMIN_NAME
+from config import INTERVALS, ADMIN_IDS, ADMIN_NAME
 from database.queries import create_client
 
 NAME, PHONE, INTERVAL = range(3)
 
 
 async def ask_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    if update.effective_user.id == ADMIN_CHAT_ID:
+    if update.effective_user.id in ADMIN_IDS:
         await update.message.reply_text(
             f"Xush kelibsiz, {ADMIN_NAME}! 👋\n\n"
             "Admin buyruqlari:\n"
