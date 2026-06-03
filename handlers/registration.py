@@ -7,12 +7,17 @@ from telegram.ext import (
 )
 from config import INTERVALS, ADMIN_IDS, ADMIN_NAME
 from database.queries import create_client
+from logger import get_logger
+
+log = get_logger("registration")
 
 NAME, PHONE, INTERVAL = range(3)
 
 
 async def ask_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    if update.effective_user.id in ADMIN_IDS:
+    user = update.effective_user
+    if user.id in ADMIN_IDS:
+        log.info(f"Admin /start: user_id={user.id} username={user.username}")
         await update.message.reply_text(
             f"Xush kelibsiz, {ADMIN_NAME}! 👋\n\n"
             "Admin buyruqlari:\n"
@@ -23,6 +28,7 @@ async def ask_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         )
         return ConversationHandler.END
 
+    log.info(f"Registration started: user_id={user.id} username={user.username}")
     await update.message.reply_text(
         "Xush kelibsiz! Ismingizni kiriting:",
         reply_markup=ReplyKeyboardRemove(),
@@ -74,6 +80,7 @@ async def receive_interval(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     phone = context.user_data["phone"]
 
     create_client(chat_id, name, phone, days)
+    log.info(f"New client registered: name={name} phone={phone} interval={days}d chat_id={chat_id}")
 
     await update.message.reply_text(
         f"Hammasi tayyor, {name}! Har {days} kunda sartaroshga borishingizni eslatib turamiz. ✂️",

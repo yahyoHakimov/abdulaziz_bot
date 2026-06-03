@@ -20,5 +20,8 @@ jobs:
             cd /opt/abdulaziz_bot
             git pull origin main
             venv/bin/pip install -r requirements.txt -q
+            for key in BOT_TOKEN ADMIN_IDS; do
+              grep -q "^${key}=" .env || { echo "ERROR: missing ${key} in .env"; exit 1; }
+            done
             systemctl restart barber-bot
             systemctl status barber-bot --no-pager

@@ -5,6 +5,9 @@ from database.schema import init_db
 from handlers.registration import build_registration_handler
 from handlers.confirmation import build_confirmation_handler
 from handlers.admin import build_admin_handlers
+from logger import get_logger
+
+log = get_logger("main")
 
 
 def main() -> None:
@@ -17,7 +20,7 @@ def main() -> None:
     for handler in build_admin_handlers():
         app.add_handler(handler)
 
-    print("Bot is running...")
+    log.info("Bot is running...")
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     app.run_polling()

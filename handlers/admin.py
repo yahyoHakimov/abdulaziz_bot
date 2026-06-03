@@ -3,6 +3,9 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, CommandHandler, CallbackQueryHandler
 from config import ADMIN_IDS
 from database.queries import get_all_clients, delete_client, mark_visited
+from logger import get_logger
+
+log = get_logger("admin")
 
 
 def is_admin(update: Update) -> bool:
@@ -25,6 +28,7 @@ async def cmd_clients(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     if not is_admin(update):
         return
 
+    log.info(f"Admin {update.effective_user.id} viewed client list")
     clients = get_all_clients()
     if not clients:
         await update.message.reply_text("Hozircha mijozlar yo'q.")
@@ -90,6 +94,7 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
         clients = get_all_clients()
         client = next((c for c in clients if c.chat_id == chat_id), None)
         name = client.name if client else str(chat_id)
+        log.info(f"Admin {update.effective_user.id} reset counter for {name} (chat_id={chat_id})")
         await query.edit_message_text(f"✅ {name} uchun hisoblagich tiklandi. Siklı bugundan boshlanadi.")
 
     elif data.startswith("admin_remove_"):
@@ -98,6 +103,7 @@ async def handle_admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE
         client = next((c for c in clients if c.chat_id == chat_id), None)
         name = client.name if client else str(chat_id)
         delete_client(chat_id)
+        log.info(f"Admin {update.effective_user.id} removed client {name} (chat_id={chat_id})")
         await query.edit_message_text(f"🗑 {name} o'chirildi.")
 
 
