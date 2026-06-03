@@ -1,3 +1,4 @@
+import html
 import os
 from datetime import date
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -129,6 +130,8 @@ async def cmd_logs(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     except (ValueError, IndexError):
         n = 50
 
+    log.info(f"Developer {update.effective_user.id} fetched last {n} log lines")
+
     try:
         with open(_LOG_FILE, "r", encoding="utf-8") as f:
             lines = f.readlines()
@@ -137,7 +140,7 @@ async def cmd_logs(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         tail = "(log fayli topilmadi)"
 
     for i in range(0, len(tail), 4000):
-        await update.message.reply_text(f"```\n{tail[i:i+4000]}\n```", parse_mode="Markdown")
+        await update.message.reply_text(f"<pre>{html.escape(tail[i:i+4000])}</pre>", parse_mode="HTML")
 
 
 def build_admin_handlers() -> list:

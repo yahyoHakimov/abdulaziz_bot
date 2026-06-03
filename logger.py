@@ -1,3 +1,4 @@
+import html
 import json
 import logging
 import os
@@ -28,11 +29,11 @@ class TelegramLogHandler(logging.Handler):
                 break
             try:
                 msg = self.format(record)
-                text = f"```\n{msg[:3900]}\n```"
+                text = f"<pre>{html.escape(msg[:3900])}</pre>"
                 data = json.dumps({
                     "chat_id": self._chat_id,
                     "text": text,
-                    "parse_mode": "Markdown",
+                    "parse_mode": "HTML",
                 }).encode("utf-8")
                 req = urllib.request.Request(
                     self._url, data=data,
