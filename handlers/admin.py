@@ -1,11 +1,14 @@
+import os
 from datetime import date
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, CommandHandler, CallbackQueryHandler
-from config import ADMIN_IDS
+from config import ADMIN_IDS, DEVELOPER_ID
 from database.queries import get_all_clients, delete_client, mark_visited
-from logger import get_logger
+from logger import get_logger, _LOG_DIR
 
 log = get_logger("admin")
+
+_LOG_FILE = os.path.join(_LOG_DIR, "bot.log")
 
 
 def is_admin(update: Update) -> bool:
@@ -116,10 +119,34 @@ async def notify_admin(context, name: str, phone: str, interval: int) -> None:
         )
 
 
+async def cmd_logs(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if update.effective_user.id != DEVELOPER_ID:
+        return
+
+    try:
+        n = int(context.args[0]) if context.args else 50
+        n = min(n, 200)
+    except (ValueError, IndexError):
+        n = 50
+
+    try:
+        with open(_LOG_FILE, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+        tail = "".join(lines[-n:]) or "(log fayli bo'sh)"
+    except FileNotFoundError:
+        tail = "(log fayli topilmadi)"
+
+    for i in range(0, len(tail), 4000):
+        await update.message.reply_text(f"```\n{tail[i:i+4000]}\n```", parse_mode="Markdown")
+
+
 def build_admin_handlers() -> list:
-    return [
+    handlers = [
         CommandHandler("clients", cmd_clients),
         CommandHandler("reset", cmd_reset),
         CommandHandler("remove", cmd_remove),
         CallbackQueryHandler(handle_admin_action, pattern=r"^admin_(reset|remove)_\d+$"),
     ]
+    if DEVELOPER_ID:
+        handlers.append(CommandHandler("logs", cmd_logs))
+    return handlers
