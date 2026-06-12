@@ -5,13 +5,26 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
-from config import INTERVALS, ADMIN_IDS, ADMIN_NAME
+from config import INTERVALS, ADMIN_IDS, ADMIN_NAME, DEVELOPER_ID
 from database.queries import create_client
 from logger import get_logger
 
 log = get_logger("registration")
 
 NAME, PHONE, INTERVAL = range(3)
+
+_TEST_LABEL = "🧪 1 daqiqa (test)"
+
+
+def _is_privileged(user_id: int) -> bool:
+    return user_id in ADMIN_IDS or user_id == DEVELOPER_ID
+
+
+def _interval_keyboard(user_id: int) -> ReplyKeyboardMarkup:
+    keys = [[KeyboardButton(f"{d} kun")] for d in INTERVALS]
+    if _is_privileged(user_id):
+        keys.append([KeyboardButton(_TEST_LABEL)])
+    return ReplyKeyboardMarkup(keys, one_time_keyboard=True, resize_keyboard=True)
 
 
 async def ask_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -53,39 +66,45 @@ async def receive_phone(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
         return PHONE
 
     context.user_data["phone"] = contact.phone_number
-    keyboard = [[KeyboardButton(f"{d} kun")] for d in INTERVALS]
     await update.message.reply_text(
         "Qancha kundan keyin sartaroshga borishingizni eslataylik?",
-        reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True),
+        reply_markup=_interval_keyboard(update.effective_user.id),
     )
     return INTERVAL
 
 
 async def receive_interval(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     text = update.message.text.strip()
-    try:
-        days = int(text.split()[0])
-        if days not in INTERVALS:
-            raise ValueError
-    except (ValueError, IndexError):
-        keyboard = [[KeyboardButton(f"{d} kun")] for d in INTERVALS]
-        await update.message.reply_text(
-            "Iltimos, variantlardan birini tanlang.",
-            reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True),
-        )
-        return INTERVAL
+    user_id = update.effective_user.id
+
+    if text == _TEST_LABEL and _is_privileged(user_id):
+        days = 0
+    else:
+        try:
+            days = int(text.split()[0])
+            if days not in INTERVALS:
+                raise ValueError
+        except (ValueError, IndexError):
+            await update.message.reply_text(
+                "Iltimos, variantlardan birini tanlang.",
+                reply_markup=_interval_keyboard(user_id),
+            )
+            return INTERVAL
 
     chat_id = update.effective_chat.id
     name = context.user_data["name"]
     phone = context.user_data["phone"]
 
     create_client(chat_id, name, phone, days)
-    log.info(f"New client registered: name={name} phone={phone} interval={days}d chat_id={chat_id}")
+    label = "test (1 daqiqa)" if days == 0 else f"{days}d"
+    log.info(f"New client registered: name={name} phone={phone} interval={label} chat_id={chat_id}")
 
-    await update.message.reply_text(
-        f"Hammasi tayyor, {name}! Har {days} kunda sartaroshga borishingizni eslatib turamiz. ✂️",
-        reply_markup=ReplyKeyboardRemove(),
+    msg = (
+        f"Test rejimi yoqildi! /testremind buyrug'i bilan reminder sinab ko'ring."
+        if days == 0
+        else f"Hammasi tayyor, {name}! Har {days} kunda sartaroshga borishingizni eslatib turamiz. ✂️"
     )
+    await update.message.reply_text(msg, reply_markup=ReplyKeyboardRemove())
 
     from handlers.admin import notify_admin
     await notify_admin(context, name, phone, days)

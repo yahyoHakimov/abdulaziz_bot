@@ -2,9 +2,10 @@ import html
 import os
 from datetime import date
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.error import Forbidden
 from telegram.ext import ContextTypes, CommandHandler, CallbackQueryHandler
 from config import ADMIN_IDS, DEVELOPER_ID
-from database.queries import get_all_clients, delete_client, mark_visited
+from database.queries import get_all_clients, delete_client, mark_visited, get_clients_due_for_reminder, set_needs_reminder
 from logger import get_logger, _LOG_DIR
 
 log = get_logger("admin")
@@ -143,11 +144,41 @@ async def cmd_logs(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.reply_text(f"<pre>{html.escape(tail[i:i+4000])}</pre>", parse_mode="HTML")
 
 
+async def cmd_testremind(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user_id = update.effective_user.id
+    if user_id not in ADMIN_IDS and user_id != DEVELOPER_ID:
+        return
+
+    test_clients = [c for c in get_clients_due_for_reminder() if c.interval_days == 0]
+    if not test_clients:
+        await update.message.reply_text("Test mijozi topilmadi. Avval /start orqali '🧪 1 daqiqa (test)' intervalini tanlang.")
+        return
+
+    log.info(f"Test remind triggered by user_id={user_id} for {len(test_clients)} test client(s)")
+    sent, failed = [], []
+    for client in test_clients:
+        try:
+            await context.bot.send_message(
+                chat_id=client.chat_id,
+                text=f"Xayrli tong, {client.name}! Sartaroshga borish vaqti keldi. ✂️",
+            )
+            set_needs_reminder(client.chat_id, True)
+            sent.append(client.name)
+        except Forbidden:
+            failed.append(client.name)
+
+    lines = ["✅ Test reminder yuborildi:"] + [f"  • {n}" for n in sent]
+    if failed:
+        lines += ["❌ Yuborilmadi (bloklangan):"] + [f"  • {n}" for n in failed]
+    await update.message.reply_text("\n".join(lines))
+
+
 def build_admin_handlers() -> list:
     handlers = [
         CommandHandler("clients", cmd_clients),
         CommandHandler("reset", cmd_reset),
         CommandHandler("remove", cmd_remove),
+        CommandHandler("testremind", cmd_testremind),
         CallbackQueryHandler(handle_admin_action, pattern=r"^admin_(reset|remove)_\d+$"),
     ]
     if DEVELOPER_ID:
