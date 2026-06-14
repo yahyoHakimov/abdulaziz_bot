@@ -10,11 +10,15 @@ CONFIRM_YES = "confirm_yes"
 CONFIRM_NO = "confirm_no"
 
 
+def _btn(text: str, callback_data: str, style: str) -> InlineKeyboardButton:
+    return InlineKeyboardButton(text=text, callback_data=callback_data, api_kwargs={"style": style})
+
+
 def build_confirmation_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("✅ Ha, bordim!", callback_data=CONFIRM_YES),
-            InlineKeyboardButton("❌ Yo'q, hali emas", callback_data=CONFIRM_NO),
+            _btn("✅ Ha, bordim!", CONFIRM_YES, style="success"),
+            _btn("❌ Yo'q, hali emas", CONFIRM_NO, style="danger"),
         ]
     ])
 

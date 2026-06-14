@@ -144,6 +144,25 @@ async def cmd_logs(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.reply_text(f"<pre>{html.escape(tail[i:i+4000])}</pre>", parse_mode="HTML")
 
 
+async def cmd_testflow(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user_id = update.effective_user.id
+    if user_id not in ADMIN_IDS and user_id != DEVELOPER_ID:
+        return
+
+    from handlers.confirmation import build_confirmation_keyboard
+    log.info(f"Test flow triggered by user_id={user_id}")
+
+    await context.bot.send_message(
+        chat_id=user_id,
+        text="Xayrli tong, Developer! Sartaroshga borish vaqti keldi. ✂️",
+    )
+    await context.bot.send_message(
+        chat_id=user_id,
+        text="Bugun sartaroshga bordingizmi?",
+        reply_markup=build_confirmation_keyboard(),
+    )
+
+
 async def cmd_testremind(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.effective_user.id
     if user_id not in ADMIN_IDS and user_id != DEVELOPER_ID:
@@ -179,6 +198,7 @@ def build_admin_handlers() -> list:
         CommandHandler("reset", cmd_reset),
         CommandHandler("remove", cmd_remove),
         CommandHandler("testremind", cmd_testremind),
+        CommandHandler("testflow", cmd_testflow),
         CallbackQueryHandler(handle_admin_action, pattern=r"^admin_(reset|remove)_\d+$"),
     ]
     if DEVELOPER_ID:
