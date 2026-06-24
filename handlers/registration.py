@@ -15,14 +15,21 @@ log = get_logger("registration")
 NAME, PHONE, INTERVAL = range(3)
 
 _TEST_LABEL = "🧪 1 daqiqa (test)"
+_DEV_DAY_LABEL = "📅 1 kun (dev)"
 
 
 def _is_privileged(user_id: int) -> bool:
     return user_id in ADMIN_IDS or user_id == DEVELOPER_ID
 
 
+def _is_developer(user_id: int) -> bool:
+    return DEVELOPER_ID is not None and user_id == DEVELOPER_ID
+
+
 def _interval_keyboard(user_id: int) -> ReplyKeyboardMarkup:
     keys = [[KeyboardButton(f"{d} kun")] for d in INTERVALS]
+    if _is_developer(user_id):
+        keys.append([KeyboardButton(_DEV_DAY_LABEL)])
     if _is_privileged(user_id):
         keys.append([KeyboardButton(_TEST_LABEL)])
     return ReplyKeyboardMarkup(keys, one_time_keyboard=True, resize_keyboard=True)
@@ -80,6 +87,8 @@ async def receive_interval(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
     if text == _TEST_LABEL and _is_privileged(user_id):
         days = 0
+    elif text == _DEV_DAY_LABEL and _is_developer(user_id):
+        days = 1
     else:
         try:
             days = int(text.split()[0])

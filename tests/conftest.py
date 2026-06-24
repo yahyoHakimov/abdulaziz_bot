@@ -5,6 +5,7 @@ import tempfile
 # module is imported. A throwaway token/admin id is fine for non-network tests.
 os.environ.setdefault("BOT_TOKEN", "test-token")
 os.environ.setdefault("ADMIN_IDS", "1")
+os.environ.setdefault("DEVELOPER_ID", "999")
 _DB_FD, _DB_PATH = tempfile.mkstemp(suffix=".db")
 os.environ["DB_PATH"] = _DB_PATH
 
