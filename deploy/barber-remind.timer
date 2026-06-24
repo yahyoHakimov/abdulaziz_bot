@@ -1,0 +1,9 @@
+[Unit]
+Description=Barber Bot — morning reminders (03:00 UTC = 08:00 Asia/Tashkent)
+
+[Timer]
+OnCalendar=*-*-* 03:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

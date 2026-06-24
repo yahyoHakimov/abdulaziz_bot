@@ -1,0 +1,14 @@
+[Unit]
+Description=Barber Bot — morning reminders
+After=network.target
+
+[Service]
+Type=oneshot
+User=barber
+Group=barber
+WorkingDirectory=/opt/abdulaziz_bot
+ExecStart=/opt/abdulaziz_bot/venv/bin/python cron/remind.py
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ReadWritePaths=/opt/abdulaziz_bot
