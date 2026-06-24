@@ -15,6 +15,7 @@ from telegram.error import Forbidden
 from database.schema import init_db
 from database.queries import get_clients_due_for_reminder, set_needs_reminder, delete_client
 from logger import get_logger
+import messages
 
 log = get_logger("remind")
 
@@ -37,17 +38,14 @@ async def main():
             try:
                 await bot.send_message(
                     chat_id=client.chat_id,
-                    text=f"Xayrli tong, {client.name}! Sartaroshga borish vaqti keldi. ✂️",
+                    text=messages.morning_reminder(client.name),
                 )
                 set_needs_reminder(client.chat_id, True)
                 log.info(f"Reminder sent: {client.name} (chat_id={client.chat_id}, interval={client.interval_days}d)")
             except Forbidden:
                 log.warning(f"Blocked by user: {client.name} (chat_id={client.chat_id}) — removing from DB")
                 delete_client(client.chat_id)
-                await notify_admins(
-                    bot,
-                    f"⚠️ {client.name} ({client.phone}) botni blokladi va ro'yxatdan o'chirildi."
-                )
+                await notify_admins(bot, messages.client_blocked(client.name, client.phone))
             except Exception as e:
                 log.error(f"Failed to send reminder to {client.name} (chat_id={client.chat_id}): {e}")
     log.info("Reminder job finished")
