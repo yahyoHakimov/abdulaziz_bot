@@ -1,13 +1,21 @@
 import html
 import os
 from datetime import date
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.error import Forbidden
-from telegram.ext import ContextTypes, CommandHandler, CallbackQueryHandler
-from config import ADMIN_IDS, DEVELOPER_ID
-from database.queries import get_all_clients, delete_client, mark_visited, get_clients_due_for_reminder, set_needs_reminder
-from logger import get_logger, _LOG_DIR
+from telegram.ext import CallbackQueryHandler, CommandHandler, ContextTypes
+
 import messages
+from config import ADMIN_IDS, DEVELOPER_ID
+from database.queries import (
+    delete_client,
+    get_all_clients,
+    get_clients_due_for_reminder,
+    mark_visited,
+    set_needs_reminder,
+)
+from logger import _LOG_DIR, get_logger
 
 log = get_logger("admin")
 
@@ -135,7 +143,7 @@ async def cmd_logs(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     log.info(f"Developer {update.effective_user.id} fetched last {n} log lines")
 
     try:
-        with open(_LOG_FILE, "r", encoding="utf-8") as f:
+        with open(_LOG_FILE, encoding="utf-8") as f:
             lines = f.readlines()
         tail = "".join(lines[-n:]) or "(log fayli bo'sh)"
     except FileNotFoundError:

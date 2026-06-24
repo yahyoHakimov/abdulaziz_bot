@@ -1,21 +1,22 @@
-import sys
-import os
 import asyncio
+import os
+import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
-    from config import BOT_TOKEN, ADMIN_IDS
+    from config import ADMIN_IDS, BOT_TOKEN
 except KeyError as e:
     print(f"FATAL: missing env var {e} in .env, aborting remind")
     sys.exit(1)
 
 from telegram import Bot
 from telegram.error import Forbidden
-from database.schema import init_db
-from database.queries import get_clients_due_for_reminder, set_needs_reminder, delete_client
-from logger import get_logger
+
 import messages
+from database.queries import delete_client, get_clients_due_for_reminder, set_needs_reminder
+from database.schema import init_db
+from logger import get_logger
 
 log = get_logger("remind")
 

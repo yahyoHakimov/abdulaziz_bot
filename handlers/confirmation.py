@@ -1,8 +1,9 @@
 from telegram import Update
-from telegram.ext import ContextTypes, CallbackQueryHandler
+from telegram.ext import CallbackQueryHandler, ContextTypes
+
+import messages
 from database.queries import get_client_by_chat_id, mark_visited, set_needs_reminder
 from logger import get_logger
-import messages
 
 log = get_logger("confirmation")
 

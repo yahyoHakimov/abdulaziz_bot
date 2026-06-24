@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import date
-from typing import Optional
+
 from database.connection import get_connection
 
 
@@ -46,7 +46,7 @@ def create_client(chat_id: int, name: str, phone: str, interval_days: int) -> Cl
     return get_client_by_chat_id(chat_id)
 
 
-def get_client_by_chat_id(chat_id: int) -> Optional[Client]:
+def get_client_by_chat_id(chat_id: int) -> Client | None:
     with get_connection() as conn:
         row = conn.execute(
             "SELECT * FROM clients WHERE chat_id = ?", (chat_id,)

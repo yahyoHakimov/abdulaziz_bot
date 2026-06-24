@@ -1,10 +1,12 @@
 import asyncio
+
 from telegram.ext import ApplicationBuilder
+
 from config import BOT_TOKEN, DEVELOPER_ID
 from database.schema import init_db
-from handlers.registration import build_registration_handler
-from handlers.confirmation import build_confirmation_handler
 from handlers.admin import build_admin_handlers
+from handlers.confirmation import build_confirmation_handler
+from handlers.registration import build_registration_handler
 from logger import get_logger, init_telegram_logging
 
 log = get_logger("main")

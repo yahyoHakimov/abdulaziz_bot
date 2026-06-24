@@ -1,11 +1,12 @@
-from telegram import Update, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
+from telegram import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import (
     ContextTypes,
     ConversationHandler,
     MessageHandler,
     filters,
 )
-from config import INTERVALS, ADMIN_IDS, ADMIN_NAME, DEVELOPER_ID
+
+from config import ADMIN_IDS, ADMIN_NAME, DEVELOPER_ID, INTERVALS
 from database.queries import create_client
 from logger import get_logger
 
@@ -100,7 +101,7 @@ async def receive_interval(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     log.info(f"New client registered: name={name} phone={phone} interval={label} chat_id={chat_id}")
 
     msg = (
-        f"Test rejimi yoqildi! /testremind buyrug'i bilan reminder sinab ko'ring."
+        "Test rejimi yoqildi! /testremind buyrug'i bilan reminder sinab ko'ring."
         if days == 0
         else f"Hammasi tayyor, {name}! Har {days} kunda sartaroshga borishingizni eslatib turamiz. ✂️"
     )
