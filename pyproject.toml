@@ -9,3 +9,4 @@ ignore = ["E501"]  # line length is handled by the formatter, not enforced hard
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
