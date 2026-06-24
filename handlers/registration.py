@@ -39,19 +39,40 @@ async def ask_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user = update.effective_user
     if user.id in ADMIN_IDS:
         log.info(f"Admin /start: user_id={user.id} username={user.username}")
-        await update.message.reply_text(
+        menu = (
             f"Xush kelibsiz, {ADMIN_NAME}! 👋\n\n"
             "Admin buyruqlari:\n"
             "/clients — Mijozlar ro'yxati\n"
             "/reset — Mijoz hisoblagichini tiklash\n"
-            "/remove — Mijozni o'chirish",
-            reply_markup=ReplyKeyboardRemove(),
+            "/remove — Mijozni o'chirish"
         )
+        if _is_developer(user.id):
+            menu += "\n/register — Mijoz sifatida test ro'yxatdan o'tish (dev)"
+        await update.message.reply_text(menu, reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END
 
     log.info(f"Registration started: user_id={user.id} username={user.username}")
     await update.message.reply_text(
         "Xush kelibsiz! Ismingizni kiriting:",
+        reply_markup=ReplyKeyboardRemove(),
+    )
+    return NAME
+
+
+async def start_test_registration(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Force the client registration flow for the developer.
+
+    The developer's id is also in ADMIN_IDS, so /start would show the admin menu
+    and never reach the interval keyboard. /register lets the developer register
+    as a client to exercise the reminder flow (incl. the dev-only '1 kun' option).
+    """
+    user = update.effective_user
+    if not _is_developer(user.id):
+        return ConversationHandler.END
+
+    log.info(f"Developer test registration started: user_id={user.id}")
+    await update.message.reply_text(
+        "Test ro'yxatdan o'tish. Ismingizni kiriting:",
         reply_markup=ReplyKeyboardRemove(),
     )
     return NAME
@@ -131,7 +152,10 @@ def build_registration_handler() -> ConversationHandler:
     from telegram.ext import CommandHandler
 
     return ConversationHandler(
-        entry_points=[CommandHandler("start", ask_name)],
+        entry_points=[
+            CommandHandler("start", ask_name),
+            CommandHandler("register", start_test_registration),
+        ],
         states={
             NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_name)],
             PHONE: [MessageHandler(filters.CONTACT, receive_phone)],
