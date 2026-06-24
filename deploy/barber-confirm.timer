@@ -1,0 +1,9 @@
+[Unit]
+Description=Barber Bot — evening confirmations (18:00 UTC = 23:00 Asia/Tashkent)
+
+[Timer]
+OnCalendar=*-*-* 18:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

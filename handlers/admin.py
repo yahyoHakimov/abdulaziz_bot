@@ -1,12 +1,21 @@
 import html
 import os
 from datetime import date
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.error import Forbidden
-from telegram.ext import ContextTypes, CommandHandler, CallbackQueryHandler
+from telegram.ext import CallbackQueryHandler, CommandHandler, ContextTypes
+
+import messages
 from config import ADMIN_IDS, DEVELOPER_ID
-from database.queries import get_all_clients, delete_client, mark_visited, get_clients_due_for_reminder, set_needs_reminder
-from logger import get_logger, _LOG_DIR
+from database.queries import (
+    delete_client,
+    get_all_clients,
+    get_clients_due_for_reminder,
+    mark_visited,
+    set_needs_reminder,
+)
+from logger import _LOG_DIR, get_logger
 
 log = get_logger("admin")
 
@@ -116,7 +125,7 @@ async def notify_admin(context, name: str, phone: str, interval: int) -> None:
     for admin_id in ADMIN_IDS:
         await context.bot.send_message(
             chat_id=admin_id,
-            text=f"🆕 Yangi mijoz ro'yxatdan o'tdi:\n👤 *{name}*\n📞 {phone}\n🕐 Har {interval} kun",
+            text=messages.new_client(name, phone, interval),
             parse_mode="Markdown",
         )
 
@@ -134,7 +143,7 @@ async def cmd_logs(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     log.info(f"Developer {update.effective_user.id} fetched last {n} log lines")
 
     try:
-        with open(_LOG_FILE, "r", encoding="utf-8") as f:
+        with open(_LOG_FILE, encoding="utf-8") as f:
             lines = f.readlines()
         tail = "".join(lines[-n:]) or "(log fayli bo'sh)"
     except FileNotFoundError:
@@ -149,17 +158,16 @@ async def cmd_testflow(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     if user_id not in ADMIN_IDS and user_id != DEVELOPER_ID:
         return
 
-    from handlers.confirmation import build_confirmation_keyboard
     log.info(f"Test flow triggered by user_id={user_id}")
 
     await context.bot.send_message(
         chat_id=user_id,
-        text="Xayrli tong, Developer! Sartaroshga borish vaqti keldi. ✂️",
+        text=messages.morning_reminder("Developer"),
     )
     await context.bot.send_message(
         chat_id=user_id,
-        text="Bugun sartaroshga bordingizmi?",
-        reply_markup=build_confirmation_keyboard(),
+        text=messages.CONFIRM_QUESTION,
+        reply_markup=messages.confirmation_keyboard(),
     )
 
 
@@ -179,7 +187,7 @@ async def cmd_testremind(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         try:
             await context.bot.send_message(
                 chat_id=client.chat_id,
-                text=f"Xayrli tong, {client.name}! Sartaroshga borish vaqti keldi. ✂️",
+                text=messages.morning_reminder(client.name),
             )
             set_needs_reminder(client.chat_id, True)
             sent.append(client.name)
