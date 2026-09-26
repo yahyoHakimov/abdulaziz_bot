@@ -1,6 +1,7 @@
 import asyncio
 
-from telegram.ext import ApplicationBuilder
+from telegram.error import NetworkError, TimedOut
+from telegram.ext import ApplicationBuilder, ContextTypes
 
 from config import BOT_TOKEN, DEVELOPER_ID
 from database.schema import init_db
@@ -10,6 +11,21 @@ from handlers.registration import build_registration_handler
 from logger import get_logger, init_telegram_logging
 
 log = get_logger("main")
+
+
+async def on_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle errors so transient network blips don't alert the developer.
+
+    NetworkError/TimedOut (e.g. httpcore.ReadError talking to Telegram) are
+    logged at INFO — visible in the journal, below the WARNING threshold that
+    forwards to Telegram — since python-telegram-bot retries automatically.
+    Anything else is logged at ERROR and still reaches the Telegram log.
+    """
+    err = context.error
+    if isinstance(err, (NetworkError, TimedOut)):
+        log.info("Transient network error talking to Telegram: %r", err)
+        return
+    log.error("Unhandled exception while processing %s", update, exc_info=err)
 
 
 def main() -> None:
@@ -24,6 +40,8 @@ def main() -> None:
     app.add_handler(build_confirmation_handler())
     for handler in build_admin_handlers():
         app.add_handler(handler)
+
+    app.add_error_handler(on_error)
 
     log.info("Bot is running...")
     loop = asyncio.new_event_loop()
