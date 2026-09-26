@@ -22,7 +22,7 @@ async def on_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     Anything else is logged at ERROR and still reaches the Telegram log.
     """
     err = context.error
-    if isinstance(err, (NetworkError, TimedOut)):
+    if isinstance(err, NetworkError | TimedOut):
         log.info("Transient network error talking to Telegram: %r", err)
         return
     log.error("Unhandled exception while processing %s", update, exc_info=err)
